@@ -1,47 +1,53 @@
-import { gmail_v1 } from "googleapis";
+import { google, gmail_v1 } from "googleapis";
 import { readFileSync } from "fs";
+import { authorizeAccount } from "./GoogleAuthorizer";
+import { Label } from "./Label.interface";
 
 export class Inbox {
+  private gmailApi: gmail_v1.Gmail;
   constructor(private credentialsJsonPath: string, private tokenPath = 'gmail-token.json') {
-    this.authenticateAccount(credentialsJsonPath);
+    this.gmailApi = this.authenticateAccount(credentialsJsonPath, tokenPath);
   }
 
-  private authenticateAccount(credentialsJsonPath: string) {
-    let allCredentials: any;
-    try{
-      const credentialsString = readFileSync(credentialsJsonPath,{encoding: "utf8"});
-      allCredentials = JSON.parse(credentialsString);
-    }catch(e) {
-      this.log("Unable to find or parse credentials json file:",e.message);
-      return;
-    }
-    let credentialsDataKey: string = Object.keys(allCredentials)[0];
-    if(!credentialsDataKey){
-      this.log("credentials json file contains no data, expected object with credentials");
-    }
-    let credentials = allCredentials[credentialsDataKey];
-    if(
-      !credentials || 
-      !credentials.client_id ||
-      !credentials.client_secret ||
-      !credentials.redirect_uris ||
-      !credentials.redirect_uris[0]
-    ){
-      this.log("Credentials do not contain required attributes client_id, client_secret and at least one redirect_uris item");
-    }
-    new gmail_v1.Gmail()
+  private authenticateAccount(credentialsJsonPath: string, tokenPath: string) {
+    let oAuthClient = authorizeAccount(credentialsJsonPath, tokenPath);
+    return google.gmail({ version: "v1", oAuth2Client: oAuthClient } as any);
   }
 
-  private log(...messages: string[]){
-    messages.unshift("Gmail-inbox:");
-    console.log.apply(console, [messages]);
+  public async getMyLabels(): Promise<Label[]> {
+
+    return new Promise((resolve, reject) => {
+      this.gmailApi.users.labels.list(
+        {
+          userId: 'me'
+        }, (errorMessage, result) => {
+          if(errorMessage){
+            reject(errorMessage);
+            return;
+          }
+
+          resolve(result?.data.labels);
+        }
+      )
+    });
   }
 
   /**
    * Retrieves all existing emails
    */
   public async getAllMessages(): Promise<any> {
-    return await this.getGmailMessages();
+    return new Promise(async (resolve, reject) => {
+      let labels = await this.getMyLabels();
+
+      const inboxLabelId = (labels as Label[]).find(l => l.name === "INBOX");
+      if(!inboxLabelId) {
+        throw new Error("Could not find INBOX");
+      }
+      this.gmailApi.users.messages.list({
+        userId: 'me'
+      });
+
+    });
   }
 
   /**
@@ -59,7 +65,7 @@ export class Inbox {
      */
     subject: string,
     message: string
-  }){
+  }) {
 
   }
 }
