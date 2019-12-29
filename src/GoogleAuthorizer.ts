@@ -17,20 +17,15 @@ const scopes = ["https://www.googleapis.com/auth/gmail.readonly"];
 export const authorizeAccount = (credentialsJsonPath: string, tokenPath: string): OAuth2Client => {
     let credentials = getCredentials(credentialsJsonPath);
 
-    // let auth = new google.auth.OAuth2({
-    //     // more info on the interface "OAuth2ClientOptions" in 'googleapis' package
-    //     clientId: credentials.client_id,
-    //     clientSecret: credentials.client_secret,
-    //     redirectUri: credentials.redirect_uris[0]
-    // });
-
-    let auth = new google.auth.OAuth2(
+    let auth = new google.auth.OAuth2({
         // more info on the interface "OAuth2ClientOptions" in 'googleapis' package
-        credentials.client_id,
-        credentials.client_secret,
-        credentials.redirect_uris[0]
-    );
-    let token = getToken(tokenPath);
+        clientId: credentials.client_id,
+        clientSecret: credentials.client_secret,
+        redirectUri: credentials.redirect_uris[0],
+    });
+
+    let token = getToken(auth, tokenPath);
+
     if (token) {
         auth.setCredentials(token);
     }
@@ -67,20 +62,22 @@ const getCredentials = (credentialsJsonPath: string): ClientCredentials => {
     return credentials;
 }
 
-const getToken = (tokenPath: string): any /* interface 'Credentials' (could not import from googleapis types) */ | null => {
+const getToken = (oAuth2Client: OAuth2Client, tokenPath: string): any /* interface 'Credentials' (could not import from googleapis types) */ | null => {
     try {
         const credentialsString = readFileSync(tokenPath, { encoding: "utf8" });
         return JSON.parse(credentialsString);
     } catch (e) {
-        console.log("err",e);
+        console.log("errA",e);
+        return getNewToken(oAuth2Client, tokenPath);
         return null;
     }
 };
 
-const getNewToken = async (oAuth2Client, tokenPath) => {
+const getNewToken = async (oAuth2Client: OAuth2Client, tokenPath) => {
     const authUrl = oAuth2Client.generateAuthUrl({
       access_type: "offline",
-      scope: scopes
+      scope: scopes,
+      prompt: "consent"
     });
     console.log("Authorize this app by visiting this url:", authUrl);
     const rl = readline.createInterface({
@@ -94,12 +91,11 @@ const getNewToken = async (oAuth2Client, tokenPath) => {
           if (err) {
             reject(err);
           } else {
-            oAuth2Client.setCredentials(token);
             writeFileSync(
               tokenPath,
               JSON.stringify(token)
             );
-            resolve(oAuth2Client);
+            resolve(token);
           }
         });
       });
