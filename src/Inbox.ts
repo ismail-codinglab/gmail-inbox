@@ -1,32 +1,31 @@
-import { google, gmail_v1 } from "googleapis";
-import { readFileSync } from "fs";
-import { authorizeAccount } from "./GoogleAuthorizer";
-import { Label } from "./Label.interface";
-import { SearchQuery } from "./SearchQuery.interface";
-//support for typescript debugging (refers to ts files instead of the transpiled js files)
+import { readFileSync } from 'fs';
+import { gmail_v1, google } from 'googleapis';
+// support for typescript debugging (refers to ts files instead of the transpiled js files)
 import * as sourceMapSupport from 'source-map-support';
-import { formatMessage } from "./formatMessage";
+import { formatMessage } from './formatMessage';
+import { authorizeAccount } from './GoogleAuthorizer';
+import { Label } from './Label.interface';
+import { SearchQuery } from './SearchQuery.interface';
 sourceMapSupport.install();
 
-//unhandled rejections are untraceable with no stacktrace, this adds stacktraces.
+// unhandled rejections are untraceable with no stacktrace, this adds stacktraces.
 process.on('unhandledRejection', console.log);
 
-
 export interface Message {
-  messageId: string,
-  threadId: string,
-  labelIds: string[],
-  snippet: string,
-  historyId: string,
+  messageId: string;
+  threadId: string;
+  labelIds: string[];
+  snippet: string;
+  historyId: string;
   /**
    * unix ms timestamp string
    */
-  internalDate: string,
-  headers: any[],
+  internalDate: string;
+  headers: any[];
   body: {
-    html: string | undefined,
-    text: string | undefined
-  }
+    html: string | undefined;
+    text: string | undefined;
+  };
 }
 
 export class Inbox {
@@ -35,95 +34,47 @@ export class Inbox {
     this.gmailApi = this.authenticateAccount(credentialsJsonPath, tokenPath);
   }
 
-  private authenticateAccount(credentialsJsonPath: string, tokenPath: string) {
-    let oAuthClient = authorizeAccount(credentialsJsonPath, tokenPath);
-    return google.gmail({ version: "v1", auth: oAuthClient });
-  }
-
   public async getAllLabels(): Promise<Label[]> {
-
     return new Promise((resolve, reject) => {
       this.gmailApi.users.labels.list(
         {
           userId: 'me',
-        }, (errorMessage, result) => {
+        },
+        (errorMessage, result) => {
           if (errorMessage) {
             reject(errorMessage);
             return;
           }
 
           resolve(result?.data.labels);
-        }
-      )
-    });
-  }
-
-  private async getMessageById(messageId: string): Promise<Message> {
-    return new Promise((resolve, reject) => {
-      this.gmailApi.users.messages.get(
-        {
-          userId: "me",
-          id: messageId,
-          format: "full"
         },
-        (errorMessage, message) => {
-          if (errorMessage) {
-            reject(errorMessage);
-          } else {
-            resolve(formatMessage(message as any) as Message);
-          }
-        }
       );
-    })
+    });
   }
 
   /**
    * Retrieves all existing emails
    */
-  public async getAllMessages(): Promise<{ config: any, data: gmail_v1.Schema$Message, headers: any }[]> {
-    return new Promise(async (resolve, reject) => {
-      let labels = await this.getAllLabels();
+  public async getInboxMessages(): Promise<Message[]> {
+    try {
+      const messages = await this.findMessages({
+        labels: ['inbox'],
+      } as SearchQuery);
 
-      const inboxLabelId = (labels as Label[]).find(l => l.name === "INBOX")?.id;
-      if (!inboxLabelId) {
-        throw new Error("Could not find INBOX");
+      if (messages && messages !== undefined) {
+        return messages;
+      } else {
+        return [];
       }
-      this.gmailApi.users.messages.list({
-        userId: 'me',
-        labelIds: [inboxLabelId],
-
-      }, async (errorMessage, result) => {
-        if (errorMessage) {
-          reject(errorMessage);
-          return;
-        }
-
-        let gmailMessages: gmail_v1.Schema$Message[] | undefined = result?.data.messages;
-        if (!gmailMessages) {
-          return resolve([]);
-        }
-
-        let messages: gmail_v1.Schema$Message[] = await Promise.all(gmailMessages.map(async (message: gmail_v1.Schema$Message): Promise<any> => {
-          if (message.id) {
-            return this.getMessageById(message.id);
-          }
-          return null;
-        }));
-
-        messages.filter((message) => !!message === true);
-
-        resolve(messages as any);
-      });
-      this.findMessages(<SearchQuery>{
-        filename: "pdf"
-      });
-
-    });
+    } catch (e) {
+      console.log('gmail-inbox error:', e);
+      return [];
+    }
   }
 
   /**
    * Finds existing emails
-   * 
+   *
    * Example search query
    * - "has:attachment filename:salary.pdf largerThan:1000000 label:(paychecks salaries) from:myoldcompany@oldcompany.com"
    * - {
@@ -134,78 +85,132 @@ export class Inbox {
    *   from: "myoldcompany@oldcompany.com"
    * }
    */
-  public findMessages(searchQuery: SearchQuery | string) {
-    let searchString: string;
-    if(typeof searchQuery == "string"){
-      searchString = searchQuery;
-    }else{
-      searchString = this.mapSearchQueryToSearchString(searchQuery);
-    }
+  public findMessages(searchQuery: SearchQuery | string | undefined): Promise<Message[]> {
+    return new Promise((resolve, reject) => {
+      let searchString: string | undefined;
+      if (typeof searchQuery === 'string' || searchQuery === undefined) {
+        searchString = searchQuery;
+      } else {
+        searchString = this.mapSearchQueryToSearchString(searchQuery);
+      }
 
-    this.gmailApi.users.messages.list({
-      userId: "me",
-      q: searchString
-    })
+      const query: any = {
+        userId: 'me',
+      };
+      if (searchString) {
+        query.q = searchString;
+      }
+      this.gmailApi.users.messages.list(query, async (errorMessage, result) => {
+        if (errorMessage) {
+          reject(errorMessage);
+          return;
+        }
+
+        const gmailMessages: gmail_v1.Schema$Message[] | undefined = result?.data.messages;
+        if (!gmailMessages) {
+          return resolve([]);
+        }
+
+        const messages: gmail_v1.Schema$Message[] = await Promise.all(
+          gmailMessages.map(
+            async (message: gmail_v1.Schema$Message): Promise<any> => {
+              if (message.id) {
+                return this.getMessageById(message.id);
+              }
+              return null;
+            },
+          ),
+        );
+
+        messages.filter(message => !!message === true);
+
+        resolve(messages as any);
+      });
+    });
   }
 
-  private arrayToAdvancedSearchString(itemOrItems: string[] | string){
-    if(typeof itemOrItems === "string") return itemOrItems;
+  private authenticateAccount(credentialsJsonPath: string, tokenPath: string) {
+    const oAuthClient = authorizeAccount(credentialsJsonPath, tokenPath);
+    return google.gmail({ version: 'v1', auth: oAuthClient });
+  }
 
-    return `(${itemOrItems.join(" ")})`;
+  private async getMessageById(messageId: string): Promise<Message> {
+    return new Promise((resolve, reject) => {
+      this.gmailApi.users.messages.get(
+        {
+          format: 'full',
+          id: messageId,
+          userId: 'me',
+        },
+        (errorMessage, message) => {
+          if (errorMessage) {
+            reject(errorMessage);
+          } else {
+            resolve(formatMessage(message as any) as Message);
+          }
+        },
+      );
+    });
+  }
+
+  private arrayToAdvancedSearchString(itemOrItems: string[] | string) {
+    if (typeof itemOrItems === 'string') {
+      return itemOrItems;
+    }
+
+    return `(${itemOrItems.join(' ')})`;
   }
 
   private mapSearchQueryToSearchString(searchQuery: SearchQuery): string {
-    let searchString: string = "";
+    let searchString: string = '';
 
-    if(searchQuery.message) {
+    if (searchQuery.message) {
       searchString += searchQuery.message;
     }
 
-    if(searchQuery.subject){
-      searchString += `subject: ${this.arrayToAdvancedSearchString(searchQuery.subject)}`
+    if (searchQuery.subject) {
+      searchString += `subject: ${this.arrayToAdvancedSearchString(searchQuery.subject)}`;
     }
 
-    if(searchQuery.mustContainText) {
+    if (searchQuery.mustContainText) {
       searchString += ` "${searchQuery.mustContainText}"`;
     }
 
-    if(searchQuery.from){
+    if (searchQuery.from) {
       searchString += ` from: ${this.arrayToAdvancedSearchString(searchQuery.from)}`;
     }
 
-    if(searchQuery.to){
+    if (searchQuery.to) {
       searchString += ` to: ${this.arrayToAdvancedSearchString(searchQuery.to)}`;
     }
 
-    if(searchQuery.cc){
+    if (searchQuery.cc) {
       searchString += ` cc: ${searchQuery.cc}`;
     }
 
-    if(searchQuery.bcc){
+    if (searchQuery.bcc) {
       searchString += ` bcc: ${searchQuery.bcc}`;
     }
 
-    if(searchQuery.labels){
+    if (searchQuery.labels) {
       searchString += ` label: ${this.arrayToAdvancedSearchString(searchQuery.labels)}`;
     }
 
-    if(searchQuery.has){
+    if (searchQuery.has) {
       searchString += ` has: ${searchQuery.has}`;
     }
 
-    if(searchQuery.filenameExtension){
+    if (searchQuery.filenameExtension) {
       searchString += ` filename: ${searchQuery.filenameExtension}`;
     }
 
-    if(searchQuery.filename){
+    if (searchQuery.filename) {
       searchString += ` filename: ${searchQuery.filename}`;
     }
 
-    if(searchQuery.is){
+    if (searchQuery.is) {
       searchString += ` is: ${searchQuery.is}`;
     }
-
-    
 
     return searchString;
   }
