@@ -2,13 +2,32 @@ import { google, gmail_v1 } from "googleapis";
 import { readFileSync } from "fs";
 import { authorizeAccount } from "./GoogleAuthorizer";
 import { Label } from "./Label.interface";
-
+import { SearchQuery } from "./SearchQuery.interface";
 //support for typescript debugging (refers to ts files instead of the transpiled js files)
 import * as sourceMapSupport from 'source-map-support';
+import { formatMessage } from "./formatMessage";
 sourceMapSupport.install();
 
 //unhandled rejections are untraceable with no stacktrace, this adds stacktraces.
 process.on('unhandledRejection', console.log);
+
+
+export interface Message {
+  messageId: string,
+  threadId: string,
+  labelIds: string[],
+  snippet: string,
+  historyId: string,
+  /**
+   * unix ms timestamp string
+   */
+  internalDate: string,
+  headers: any[],
+  body: {
+    html: string | undefined,
+    text: string | undefined
+  }
+}
 
 export class Inbox {
   private gmailApi: gmail_v1.Gmail;
@@ -21,7 +40,7 @@ export class Inbox {
     return google.gmail({ version: "v1", auth: oAuthClient });
   }
 
-  public async getMyLabels(): Promise<Label[]> {
+  public async getAllLabels(): Promise<Label[]> {
 
     return new Promise((resolve, reject) => {
       this.gmailApi.users.labels.list(
@@ -39,7 +58,7 @@ export class Inbox {
     });
   }
 
-  private async getMessage(messageId: string) {
+  private async getMessageById(messageId: string): Promise<Message> {
     return new Promise((resolve, reject) => {
       this.gmailApi.users.messages.get(
         {
@@ -47,11 +66,11 @@ export class Inbox {
           id: messageId,
           format: "full"
         },
-        function (err, res) {
-          if (err) {
-            reject(err);
+        (errorMessage, message) => {
+          if (errorMessage) {
+            reject(errorMessage);
           } else {
-            resolve(res);
+            resolve(formatMessage(message as any) as Message);
           }
         }
       );
@@ -61,9 +80,9 @@ export class Inbox {
   /**
    * Retrieves all existing emails
    */
-  public async getAllMessages(): Promise<{config: any, data: gmail_v1.Schema$Message, headers: any}[]> {
+  public async getAllMessages(): Promise<{ config: any, data: gmail_v1.Schema$Message, headers: any }[]> {
     return new Promise(async (resolve, reject) => {
-      let labels = await this.getMyLabels();
+      let labels = await this.getAllLabels();
 
       const inboxLabelId = (labels as Label[]).find(l => l.name === "INBOX")?.id;
       if (!inboxLabelId) {
@@ -86,7 +105,7 @@ export class Inbox {
 
         let messages: gmail_v1.Schema$Message[] = await Promise.all(gmailMessages.map(async (message: gmail_v1.Schema$Message): Promise<any> => {
           if (message.id) {
-            return this.getMessage(message.id);
+            return this.getMessageById(message.id);
           }
           return null;
         }));
@@ -95,26 +114,87 @@ export class Inbox {
 
         resolve(messages as any);
       });
+      this.findMessages(<SearchQuery>{
+        filename: "pdf"
+      });
 
     });
   }
 
   /**
    * Finds existing emails
+   * 
+   * Example search query
+   * - "has:attachment filename:salary.pdf largerThan:1000000 label:(paychecks salaries) from:myoldcompany@oldcompany.com"
+   * - {
+   *   has: "attachment",
+   *   filename: "salary.pdf",
+   *   largerThanInBytes: 1000000,
+   *   labels: ["paychecks", "salaries"],
+   *   from: "myoldcompany@oldcompany.com"
+   * }
    */
-  public findMessages({
-    subject,
+  public findMessages(searchQuery: SearchQuery | string) {
+    let searchString: string;
+    if(typeof searchQuery == "string"){
+      searchString = searchQuery;
+    }else{
+      searchString = this.mapSearchQueryToSearchString(searchQuery);
+    }
 
-  }: {
-    /**
-     * Can be an exact string or a regex
-     */
-    /**
-     * Can be an exact string or a regex
-     */
-    subject: string,
-    message: string
-  }) {
+    this.gmailApi.users.messages.list({
+      userId: "me",
+      q: searchString
+    })
+  }
 
+  private arrayToAdvancedSearchString(itemOrItems: string[] | string){
+    if(typeof itemOrItems === "string") return itemOrItems;
+
+    return `(${itemOrItems.join(" ")})`;
+  }
+
+  private mapSearchQueryToSearchString(searchQuery: SearchQuery): string {
+    let searchString: string = "";
+
+    if(searchQuery.message) {
+      searchString += searchQuery.message;
+    }
+
+    if(searchQuery.subject){
+      searchString += `has: ${this.arrayToAdvancedSearchString(searchQuery.subject)}`
+    }
+
+    if(searchQuery.mustContainText) {
+      searchString += ` "${searchQuery.mustContainText}"`;
+    }
+
+    if(searchQuery.from){
+      searchString += ` from: ${this.arrayToAdvancedSearchString(searchQuery.from)}`;
+    }
+
+    if(searchQuery.to){
+      searchString += ` to: ${this.arrayToAdvancedSearchString(searchQuery.to)}`;
+    }
+
+    if(searchQuery.cc){
+      searchString += ` cc: ${searchQuery.cc}`;
+    }
+
+    if(searchQuery.bcc){
+      searchString += ` bcc: ${searchQuery.bcc}`;
+    }
+
+    if(searchQuery.labels){
+      searchString += ` label: ${this.arrayToAdvancedSearchString(searchQuery.labels)}`;
+    }
+
+    if(searchQuery.has){
+      searchString += ` has: ${searchQuery.has}`;
+    }
+
+    
+
+    return searchString;
   }
 }
