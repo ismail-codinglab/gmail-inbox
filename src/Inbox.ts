@@ -162,7 +162,7 @@ export class Inbox {
     }
 
     if(searchQuery.subject){
-      searchString += `has: ${this.arrayToAdvancedSearchString(searchQuery.subject)}`
+      searchString += `subject: ${this.arrayToAdvancedSearchString(searchQuery.subject)}`
     }
 
     if(searchQuery.mustContainText) {
@@ -191,6 +191,18 @@ export class Inbox {
 
     if(searchQuery.has){
       searchString += ` has: ${searchQuery.has}`;
+    }
+
+    if(searchQuery.filenameExtension){
+      searchString += ` filename: ${searchQuery.filenameExtension}`;
+    }
+
+    if(searchQuery.filename){
+      searchString += ` filename: ${searchQuery.filename}`;
+    }
+
+    if(searchQuery.is){
+      searchString += ` is: ${searchQuery.is}`;
     }
 
     

@@ -8,7 +8,7 @@ console.log("ok");
   let inbox = new Inbox(path.resolve(__dirname, "credentials.json"));
 
 
-  console.log("MY LABELS", await inbox.getMyLabels());
+  console.log("MY LABELS", await inbox.getAllLabels());
   let allMyMessagesUnsaved = await inbox.getAllMessages();
   let allMyMessagesSaved = JSON.parse(JSON.stringify(allMyMessagesUnsaved));
 
