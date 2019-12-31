@@ -17,7 +17,7 @@ export const formatMessage = (message: { config: any; data: gmail_v1.Schema$Mess
 };
 
 const getMessageBody = (message: { config: any; data: gmail_v1.Schema$Message; headers: any }) => {
-  let body: any;
+  let body: any = {};
   const messagePayload = message.data.payload;
   const messageBody = messagePayload?.body;
   if (messageBody?.size && messagePayload) {
