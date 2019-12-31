@@ -14,7 +14,7 @@ interface ClientCredentials {
 // If modifying these scopes, delete token.json.
 const scopes = ['https://www.googleapis.com/auth/gmail.readonly'];
 
-export const authorizeAccount = (credentialsJsonPath: string, tokenPath: string): OAuth2Client => {
+export const authorizeAccount = async (credentialsJsonPath: string, tokenPath: string): Promise<OAuth2Client> => {
   const credentials = getCredentials(credentialsJsonPath);
 
   const auth = new google.auth.OAuth2({
@@ -24,7 +24,7 @@ export const authorizeAccount = (credentialsJsonPath: string, tokenPath: string)
     redirectUri: credentials.redirect_uris[0],
   });
 
-  const token = getToken(auth, tokenPath);
+  const token = await getToken(auth, tokenPath);
 
   if (token) {
     auth.setCredentials(token);
@@ -58,20 +58,20 @@ const getCredentials = (credentialsJsonPath: string): ClientCredentials => {
   return credentials;
 };
 
-const getToken = (
+const getToken = async (
   oAuth2Client: OAuth2Client,
   tokenPath: string,
-): any /* interface 'Credentials' (could not import from googleapis types) */ | null => {
+): Promise<any /* interface 'Credentials' (could not import from googleapis types) */ | null> => {
   try {
     const credentialsString = readFileSync(tokenPath, { encoding: 'utf8' });
     return JSON.parse(credentialsString);
   } catch (e) {
     // means we got no valid token to use, so we request a new one
-    return getNewToken(oAuth2Client, tokenPath);
+    return await getNewToken(oAuth2Client, tokenPath);
   }
 };
 
-const getNewToken = async (oAuth2Client: OAuth2Client, tokenPath) => {
+const getNewToken = async (oAuth2Client: OAuth2Client, tokenPath): Promise<any> => {
   const authUrl = oAuth2Client.generateAuthUrl({
     access_type: 'offline',
     prompt: 'consent',

@@ -29,12 +29,23 @@ export interface Message {
 }
 
 export class Inbox {
-  private gmailApi: gmail_v1.Gmail;
+  private gmailApi: gmail_v1.Gmail = google.gmail("v1");
+  private authenticated: boolean = false;
   constructor(private credentialsJsonPath: string, private tokenPath = 'gmail-token.json') {
-    this.gmailApi = this.authenticateAccount(credentialsJsonPath, tokenPath);
+  }
+
+  public async authenticateAccount() {
+    const oAuthClient = await authorizeAccount(this.credentialsJsonPath, this.tokenPath);
+    this.gmailApi = google.gmail({ version: 'v1', auth: oAuthClient });
+    this.authenticated = true;
+  }
+
+  private guardAuthentication() {
+    if(!this.authenticated) throw new Error("Please authenticate with Inbox.authenticate() before performing any action");
   }
 
   public async getAllLabels(): Promise<Label[]> {
+    this.guardAuthentication();
     return new Promise((resolve, reject) => {
       this.gmailApi.users.labels.list(
         {
@@ -56,6 +67,7 @@ export class Inbox {
    * Retrieves all existing emails
    */
   public async getInboxMessages(): Promise<Message[]> {
+    this.guardAuthentication();
     try {
       const messages = await this.findMessages({
         labels: ['inbox'],
@@ -86,6 +98,7 @@ export class Inbox {
    * }
    */
   public findMessages(searchQuery: SearchQuery | string | undefined): Promise<Message[]> {
+    this.guardAuthentication();
     return new Promise((resolve, reject) => {
       let searchString: string | undefined;
       if (typeof searchQuery === 'string' || searchQuery === undefined) {
@@ -127,11 +140,6 @@ export class Inbox {
         resolve(messages as any);
       });
     });
-  }
-
-  private authenticateAccount(credentialsJsonPath: string, tokenPath: string) {
-    const oAuthClient = authorizeAccount(credentialsJsonPath, tokenPath);
-    return google.gmail({ version: 'v1', auth: oAuthClient });
   }
 
   private async getMessageById(messageId: string): Promise<Message> {
