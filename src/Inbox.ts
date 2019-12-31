@@ -31,17 +31,13 @@ export interface Message {
 export class Inbox {
   private gmailApi: gmail_v1.Gmail = google.gmail("v1");
   private authenticated: boolean = false;
-  constructor(private credentialsJsonPath: string, private tokenPath = 'gmail-token.json') {
-  }
+
+  constructor(private credentialsJsonPath: string, private tokenPath = 'gmail-token.json') {}
 
   public async authenticateAccount() {
     const oAuthClient = await authorizeAccount(this.credentialsJsonPath, this.tokenPath);
     this.gmailApi = google.gmail({ version: 'v1', auth: oAuthClient });
     this.authenticated = true;
-  }
-
-  private guardAuthentication() {
-    if(!this.authenticated) throw new Error("Please authenticate with Inbox.authenticate() before performing any action");
   }
 
   public async getAllLabels(): Promise<Label[]> {
@@ -159,6 +155,12 @@ export class Inbox {
         },
       );
     });
+  }
+
+  private guardAuthentication() {
+    if(!this.authenticated) {
+      throw new Error("Please authenticate with Inbox.authenticate() before performing any action");
+    }
   }
 
   private arrayToAdvancedSearchString(itemOrItems: string[] | string) {
