@@ -18,14 +18,16 @@ export const formatMessage = (message: { config: any; data: gmail_v1.Schema$Mess
 
 const getMessageBody = (message: { config: any; data: gmail_v1.Schema$Message; headers: any }) => {
   let body: any;
-  if (message.data.payload?.body?.size) {
-    switch (message.data.payload.mimeType) {
+  let messagePayload = message.data.payload;
+  let messageBody = messagePayload?.body;
+  if (messageBody?.size && messagePayload) {
+    switch (messagePayload?.mimeType) {
       case 'text/html':
-        body.html = Buffer.from(body.data, 'base64').toString('utf8');
+        body.html = Buffer.from(messageBody.data as string, 'base64').toString('utf8');
         break;
       case 'text/plain':
       default:
-        body.text = Buffer.from(body.data, 'base64').toString('utf8');
+        body.text = Buffer.from(messageBody.data as string, 'base64').toString('utf8');
         break;
     }
   } else {
