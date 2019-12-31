@@ -1,6 +1,6 @@
 {
   "name": "gmail-inbox",
-  "version": "1.1.0",
+  "version": "1.0.0",
   "description": "Receive Gmail emails in code!",
   "main": "lib/inbox.ts",
   "types": "lib/inbox.d.ts",
