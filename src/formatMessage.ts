@@ -18,8 +18,8 @@ export const formatMessage = (message: { config: any; data: gmail_v1.Schema$Mess
 
 const getMessageBody = (message: { config: any; data: gmail_v1.Schema$Message; headers: any }) => {
   let body: any;
-  let messagePayload = message.data.payload;
-  let messageBody = messagePayload?.body;
+  const messagePayload = message.data.payload;
+  const messageBody = messagePayload?.body;
   if (messageBody?.size && messagePayload) {
     switch (messagePayload?.mimeType) {
       case 'text/html':
