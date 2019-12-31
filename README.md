@@ -1,6 +1,6 @@
 # Gmail-inbox
 
-Gmail-inbox is a simplified gmail API to receive emails in coding. It helps with end-to-end testing your signup process, test email functionality and automate processes that require gmail.
+Gmail-inbox is a simplified gmail API to receive emails in coding. It helps with end-to-end testing your signup process, test email functionality and automate processes that require receiving emails.
 
 ### Installation
 
