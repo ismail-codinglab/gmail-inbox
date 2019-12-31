@@ -42,7 +42,7 @@ Follow the google instructions to [Create a client ID and client secret](https:/
 
 **Step 2**
 Go to https://console.cloud.google.com/apis/credentials and download the OAuth2 credentials file, as shown in the image below.
-![Google cloud platform](https://pasteboard.co/INRiUn9.png)
+![Google cloud platform](https://i.ibb.co/cF00Qxh/image.png)
 
 Note: make sure you selected 'other' as project and that the `redirect_uris` contains something like `"urn:ietf:wg:oauth:2.0:oob"`
 
@@ -50,7 +50,7 @@ Note: make sure you selected 'other' as project and that the `redirect_uris` con
 
 **Step 4**
 The application will prompt to visit the authorization url. Navigate to the url, select your email and copy the code as shown in the image below. 
-![Copy image url](https://pasteboard.co/INRkeub.png)
+![Copy image url](https://i.ibb.co/nrSf7rK/image.png)
 
 **Step 5**
 Done! You're good to go, you should be able to see your inbox messages, enjoy coding! :)
