@@ -34,11 +34,12 @@ const getMessageBody = (message: { config: any; data: gmail_v1.Schema$Message; h
   return body;
 };
 
-const getPayloadParts = (message: { config: any, data: gmail_v1.Schema$Message; headers: any }) => {
+const getPayloadParts = (message: { config: any; data: gmail_v1.Schema$Message; headers: any }) => {
   const body: any = {};
   const parts = message.data.payload?.parts;
-  const hasSubParts = parts?.find((part) => part.mimeType?.startsWith("multipart/"));
-  if (hasSubParts) { // recursively continue until you find the content
+  const hasSubParts = parts?.find(part => part.mimeType?.startsWith('multipart/'));
+  if (hasSubParts) {
+    // recursively continue until you find the content
     const newMessage: any = {
       Headers: {},
       config: {},
@@ -58,4 +59,4 @@ const getPayloadParts = (message: { config: any, data: gmail_v1.Schema$Message; 
   }
 
   return body;
-}
+};
