@@ -2,8 +2,8 @@
   "name": "gmail-inbox",
   "version": "1.0.1",
   "description": "Receive Gmail emails in code!",
-  "main": "lib/inbox.ts",
-  "types": "lib/inbox.d.ts",
+  "main": "lib/Inbox.ts",
+  "types": "lib/Inbox.d.ts",
   "scripts": {
     "test": "jest --config jestconfig.json --passWithNoTests",
     "build": "tsc",
