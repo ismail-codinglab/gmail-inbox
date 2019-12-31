@@ -52,6 +52,8 @@ Note: make sure you selected 'other' as project and that the `redirect_uris` con
 The application will prompt to visit the authorization url. Navigate to the url, select your email and copy the code as shown in the image below. 
 ![Copy image url](https://i.ibb.co/nrSf7rK/image.png)
 
+Note: The authorization token will only be valid for 6 months, after 6 months a renewal is required.
+
 **Step 5**
 Done! You're good to go, you should be able to see your inbox messages, enjoy coding! :)
 
