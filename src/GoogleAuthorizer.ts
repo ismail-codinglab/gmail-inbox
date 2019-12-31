@@ -99,6 +99,5 @@ const getNewToken = async (oAuth2Client: OAuth2Client, tokenPath): Promise<any> 
 
 const log = (...messages: string[]) => {
   messages.unshift('Gmail-inbox:');
-  console.log.apply(console, [messages]);
   throw new Error(...messages);
 };

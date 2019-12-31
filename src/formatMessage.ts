@@ -17,7 +17,7 @@ export const formatMessage = (message: { config: any; data: gmail_v1.Schema$Mess
 };
 
 const getMessageBody = (message: { config: any; data: gmail_v1.Schema$Message; headers: any }) => {
-  const body: any = {};
+  let body: any;
   if (message.data.payload?.body?.size) {
     switch (message.data.payload.mimeType) {
       case 'text/html':
@@ -29,16 +29,33 @@ const getMessageBody = (message: { config: any; data: gmail_v1.Schema$Message; h
         break;
     }
   } else {
-    const htmlBodyPart = message.data.payload?.parts?.find(part => part.mimeType === 'text/html');
-
-    if (htmlBodyPart && htmlBodyPart.body && htmlBodyPart.body.data) {
-      body.html = Buffer.from(htmlBodyPart.body.data, 'base64').toString('utf8');
-    }
-    const textBodyPart = message.data.payload?.parts?.find(part => part.mimeType === 'text/plain');
-
-    if (textBodyPart && textBodyPart.body && textBodyPart.body.data) {
-      body.text = Buffer.from(textBodyPart.body.data, 'base64').toString('utf8');
-    }
+    body = getPayloadParts(message);
   }
   return body;
 };
+
+const getPayloadParts = (message: { config: any, data: gmail_v1.Schema$Message; headers: any }) => {
+  const body: any = {};
+  let parts = message.data.payload?.parts;
+  let hasSubParts = parts?.find((part) => part.mimeType?.startsWith("multipart/"));
+  if (hasSubParts) { // recursively continue until you find the content
+    let message: any = {
+      config: {},
+      data: { payload: hasSubParts } as gmail_v1.Schema$Message,
+      Headers: {}
+    };
+    return getPayloadParts(message);
+  }
+  const htmlBodyPart = parts?.find(part => part.mimeType === 'text/html');
+
+  if (htmlBodyPart && htmlBodyPart.body && htmlBodyPart.body.data) {
+    body.html = Buffer.from(htmlBodyPart.body.data, 'base64').toString('utf8');
+  }
+  const textBodyPart = parts?.find(part => part.mimeType === 'text/plain');
+
+  if (textBodyPart && textBodyPart.body && textBodyPart.body.data) {
+    body.text = Buffer.from(textBodyPart.body.data, 'base64').toString('utf8');
+  }
+
+  return body;
+}

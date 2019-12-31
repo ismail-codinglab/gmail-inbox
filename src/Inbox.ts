@@ -8,9 +8,6 @@ import { Label } from './Label.interface';
 import { SearchQuery } from './SearchQuery.interface';
 sourceMapSupport.install();
 
-// unhandled rejections are untraceable with no stacktrace, this adds stacktraces.
-process.on('unhandledRejection', console.log);
-
 export interface Message {
   messageId: string;
   threadId: string;
