@@ -29,7 +29,7 @@ export interface Message {
 }
 
 export class Inbox {
-  private gmailApi: gmail_v1.Gmail = google.gmail("v1");
+  private gmailApi: gmail_v1.Gmail = google.gmail('v1');
   private authenticated: boolean = false;
 
   constructor(private credentialsJsonPath: string, private tokenPath = 'gmail-token.json') {}
@@ -158,8 +158,8 @@ export class Inbox {
   }
 
   private guardAuthentication() {
-    if(!this.authenticated) {
-      throw new Error("Please authenticate with Inbox.authenticate() before performing any action");
+    if (!this.authenticated) {
+      throw new Error('Please authenticate with Inbox.authenticate() before performing any action');
     }
   }
 
