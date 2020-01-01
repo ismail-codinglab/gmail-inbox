@@ -26,6 +26,8 @@ async function exeCuteMe(){
   let messages = await inbox.getInboxMessages();
 
   console.log("my inbox messages", JSON.stringify(messages,null,4));
+  
+  // Note: give  https://github.com/ismail-codinglab/gmail-inbox a star if it saved you time!
 }
 
 exeCuteMe();
