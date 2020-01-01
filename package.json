@@ -31,7 +31,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ismail-codinglab/gmail-inbox.git"
+    "url": "git+https://github.com/ismail-codinglab/gmail-inbox.git"
   },
   "devDependencies": {
     "@types/jest": "^24.0.25",
