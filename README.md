@@ -42,7 +42,12 @@ Follow the google instructions to [Create a client ID and client secret](https:/
 
 **Step 2**
 Go to https://console.cloud.google.com/apis/credentials and download the OAuth2 credentials file, as shown in the image below.
+
 ![Google cloud platform](https://i.ibb.co/cF00Qxh/image.png)
+
+Your credentials file (commmonly named client_secret_\*.json), should look similar to image below
+
+![credentials file example](https://i.ibb.co/1stgn28/credentials.png)
 
 Note: make sure you selected 'other' as project and that the `redirect_uris` contains something like `"urn:ietf:wg:oauth:2.0:oob"`
 
