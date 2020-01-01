@@ -25,6 +25,14 @@
   ],
   "author": "CodingLab",
   "license": "ISC",
+  "homepage": "https://github.com/ismail-codinglab/gmail-inbox",
+  "bugs": {
+    "url": "https://github.com/ismail-codinglab/gmail-inbox/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ismail-codinglab/gmail-inbox.git"
+  },
   "devDependencies": {
     "@types/jest": "^24.0.25",
     "@types/node": "^13.1.2",
