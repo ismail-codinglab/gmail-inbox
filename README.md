@@ -67,9 +67,9 @@ Note: The authorization token will only be valid for 6 months, after 6 months a 
 **Step 5**
 Done! You're good to go, you should be able to see your inbox messages, enjoy coding! :)
 
-### API
+# API
 
-#### Available methods
+### Available methods
 
 ```Typescript
 interface InboxMethods {
@@ -86,7 +86,7 @@ interface InboxMethods {
 }
 ```
 
-#### `Inbox.findMessages(searchQuery: SearchQuery)` / `Inbox.waitTillMessage(searchQuery: SearchQuery, ...)`
+### `Inbox.findMessages(searchQuery: SearchQuery)` / `Inbox.waitTillMessage(searchQuery: SearchQuery, ...)`
 Both `findMessages` and `waitTillMessage` support the same searchquery
 
 Since the code is typed in TypeScript I will just include the self-documented interface :)
@@ -141,7 +141,7 @@ interface SearchQuery {
 
 ```
 
-### Development
+# Development
 
 Want to contribute? Great!
 
