@@ -69,7 +69,24 @@ Done! You're good to go, you should be able to see your inbox messages, enjoy co
 
 ### API
 
-#### Inbox.findMessages(searchQuery: SearchQuery) / Inbox.waitTillMessage(searchQuery: SearchQuery, ...)
+#### Available methods
+
+```Typescript
+interface InboxMethods {
+  authenticateAccount(): Promise<void>;
+  findMessages(searchQuery: SearchQuery);
+  getAllLabels(): Promise<Label[]>;
+  getInboxMessages(): Promise<Message[]>;
+  waitTillMessage(
+    searchQuery: SearchQuery,
+    shouldLogEvents: boolean,
+    timeTillNextCallInSeconds: number,
+    maxWaitTimeInSeconds: number
+  ): Promise<Message[]>;
+}
+```
+
+#### `Inbox.findMessages(searchQuery: SearchQuery)` / `Inbox.waitTillMessage(searchQuery: SearchQuery, ...)`
 Both `findMessages` and `waitTillMessage` support the same searchquery
 
 Since the code is typed in TypeScript I will just include the self-documented interface :)
