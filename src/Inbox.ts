@@ -3,9 +3,9 @@ import { gmail_v1, google } from 'googleapis';
 import * as sourceMapSupport from 'source-map-support';
 import { formatMessage } from './formatMessage';
 import { authorizeAccount } from './GoogleAuthorizer';
+import { InboxMethods } from './InboxMethods.interface';
 import { Label } from './Label.interface';
 import { SearchQuery } from './SearchQuery.interface';
-import { InboxMethods } from './InboxMethods.interface';
 sourceMapSupport.install();
 
 export interface Message {
@@ -152,7 +152,7 @@ export class Inbox implements InboxMethods {
     maxWaitTimeInSeconds: number = 60
   ): Promise<Message[]> {
     return new Promise(async (resolve, reject) => {
-      let waitTime = new Date();
+      const waitTime = new Date();
       let timeDiffInSeconds = 0;
       this.log(shouldLogEvents, 'finding message based on SearchQuery:', searchQuery);
       let messages = await this.findMessages(searchQuery);
@@ -269,12 +269,12 @@ export class Inbox implements InboxMethods {
     }
 
     if (searchQuery.olderThan && searchQuery.olderThan.amount > 0) {
-      let range = searchQuery.olderThan;
+      const range = searchQuery.olderThan;
       searchString += `older_than:${range.amount}${range.period.substr(0, 1)} `;
     }
 
     if (searchQuery.newerThan && searchQuery.newerThan.amount > 0) {
-      let range = searchQuery.newerThan;
+      const range = searchQuery.newerThan;
       searchString += `newer_than:${range.amount}${range.period.substr(0, 1)} `;
     }
 

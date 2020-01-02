@@ -1,6 +1,6 @@
-import { SearchQuery } from "./SearchQuery.interface";
-import { Label } from "./Label.interface";
 import { Message } from "./Inbox";
+import { Label } from "./Label.interface";
+import { SearchQuery } from "./SearchQuery.interface";
 
 /**
  * If you update this, please also update the docs in Readme.md

@@ -7,16 +7,16 @@ import { Message } from './Inbox';
  * @param message 
  */
 export const formatMessage = (message: { data: gmail_v1.Schema$Message; }): Message => {
-  let headers = message.data.payload?.headers;
+  const headers = message.data.payload?.headers;
   const prettyMessage: Message = {
     body: getMessageBody(message),
+    from: getHeader("From", headers),
     historyId: message.data.historyId!,
     internalDate: message.data.internalDate!,
     labelIds: message.data.labelIds!,
     messageId: message.data.id!,
     snippet: message.data.snippet!,
     threadId: message.data.threadId!,
-    from: getHeader("From", headers),
     to: getHeader("To", headers),
     subject: getHeader("Subject", headers),
     receivedOn: getHeader("Date",headers),
@@ -26,8 +26,8 @@ export const formatMessage = (message: { data: gmail_v1.Schema$Message; }): Mess
   return prettyMessage;
 };
 
-const getHeader = (name: string, headers: {name?: string | undefined, value?: string | undefined}[] | undefined) => {
-  if(!headers) return;
+const getHeader = (name: string, headers: Array<{name?: string | undefined, value?: string | undefined}> | undefined) => {
+  if(!headers) { return; }
   const header = headers.find(h => h.name === name)
   return header && header.value;
 }

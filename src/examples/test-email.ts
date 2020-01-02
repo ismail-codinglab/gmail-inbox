@@ -12,14 +12,14 @@ import { SearchQuery } from '../SearchQuery.interface';
   console.log(
     "My test mail",
     await inbox.waitTillMessage({
+      filenameExtension: "pdf", // note: the filenames containing pdf e.g. 'not-a-pdf.png' will also be returned
+      has: "attachment", // must have an attachment
+      mustContainText: "verify", // either subject or message must contain string test
       newerThan:{ // only of today
         amount: 1,
         period: "day"
       },
       subject: "welcome", // subject must contain string test
-      mustContainText: "verify", // either subject or message must contain string test
-      has: "attachment", // must have an attachment
-      filenameExtension: "pdf" // note: the filenames containing pdf e.g. 'not-a-pdf.png' will also be returned
       
     } as SearchQuery)
   );
