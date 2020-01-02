@@ -1,4 +1,3 @@
-import { readFileSync } from 'fs';
 import { gmail_v1, google } from 'googleapis';
 // support for typescript debugging (refers to ts files instead of the transpiled js files)
 import * as sourceMapSupport from 'source-map-support';
@@ -29,7 +28,7 @@ export class Inbox {
   private gmailApi: gmail_v1.Gmail = google.gmail('v1');
   private authenticated: boolean = false;
 
-  constructor(private credentialsJsonPath: string, private tokenPath = 'gmail-token.json') {}
+  constructor(private credentialsJsonPath: string, private tokenPath = 'gmail-token.json') { }
 
   public async authenticateAccount() {
     const oAuthClient = await authorizeAccount(this.credentialsJsonPath, this.tokenPath);
@@ -133,6 +132,36 @@ export class Inbox {
         resolve(messages as any);
       });
     });
+  }
+
+  /**
+   * 
+   * @param searchQuery similar to findMessages, the query how it will find the message
+   * @param timeTillNextCallInSeconds How long it should wait till it checks again if the message is received
+   * @param maxWaitTimeInSeconds How long it should wait in total for the message
+   */
+  public waitTillMessage(searchQuery: SearchQuery | string | undefined, timeTillNextCallInSeconds: number, maxWaitTimeInSeconds: number) {
+    return new Promise(async (resolve, reject) => {
+      let waitTime = new Date();
+      let timeDiffInSeconds = 0;
+      let messages = await this.findMessages(searchQuery);
+
+      while(!messages.length) {
+        timeDiffInSeconds = (Date.now() - waitTime.getTime()) / 1000;
+        if(timeDiffInSeconds && maxWaitTimeInSeconds - timeDiffInSeconds <= 0){
+          reject(`No message found for searchQuery: ${searchQuery}`);
+          return;
+        }
+        await this.timeout(timeTillNextCallInSeconds * 1000);
+        messages = await this.findMessages(searchQuery);
+      }
+      
+      resolve(messages);
+    });
+  }
+
+  private timeout(ms: number): Promise<any> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   private async getMessageById(messageId: string): Promise<Message> {
