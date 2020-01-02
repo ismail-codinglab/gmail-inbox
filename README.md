@@ -73,7 +73,7 @@ Done! You're good to go, you should be able to see your inbox messages, enjoy co
 Both `findMessages` and `waitTillMessage` support the same searchquery
 
 Since the code is typed in TypeScript I will just include the self-documented interface :)
-```javascript
+```typescript
 type MessageFilterIsType = 'read' | 'unread' | 'snoozed' | 'starred' | 'important';
 interface SearchQuery {
   /**
