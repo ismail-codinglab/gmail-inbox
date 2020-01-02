@@ -73,7 +73,7 @@ Since the code is typed in TypeScript I will just include the self-documented in
 
 ### Available methods
 
-```Typescript
+```typescript
 interface InboxMethods {
   /**
    * Logs the user in. 
