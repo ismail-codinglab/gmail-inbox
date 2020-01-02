@@ -26,7 +26,7 @@ async function exeCuteMe(){
   let inbox = new Inbox('credentials.json');
   await inbox.authenticateAccount(); // logs user in
   
-  let messages = await inbox.getInboxMessages();
+  let messages = await inbox.getLatestMessages();
 
   console.log("my inbox messages", JSON.stringify(messages,null,4));
   
@@ -67,8 +67,100 @@ Note: The authorization token will only be valid for 6 months, after 6 months a 
 **Step 5**
 Done! You're good to go, you should be able to see your inbox messages, enjoy coding! :)
 
+# API
 
-### Development
+Since the code is typed in TypeScript I will just include the self-documented interfaces :)
+
+### Available methods
+
+```Typescript
+interface InboxMethods {
+  /**
+   * Logs the user in. 
+   * If there is no authenticated user then a instruction will pop-up and an input is required
+   */
+  authenticateAccount(): Promise<void>;
+  /**
+   * Finds messages based on the searchQuery
+   * Can be typed or plain text as you can be used to in the gmail search-bar
+   */
+  findMessages(searchQuery: SearchQuery| string);
+  /**
+   * Gets all the labels. Default ones and custom ones.
+   */
+  getAllLabels(): Promise<Label[]>;
+  /**
+   * Gets the latest messages
+   */
+  getLatestMessages(): Promise<Message[]>;
+  /**
+   * Waits until a message is received. 
+   * Handy for testing if the 'welcome' or 'verify email' email is being send within a time limit e.g. 60seconds
+   */
+  waitTillMessage(
+    searchQuery: SearchQuery | string,
+    shouldLogEvents: boolean,
+    timeTillNextCallInSeconds: number,
+    maxWaitTimeInSeconds: number
+  ): Promise<Message[]>;
+}
+```
+
+### `Inbox.findMessages(searchQuery: SearchQuery)` / `Inbox.waitTillMessage(searchQuery: SearchQuery, ...)`
+Both `findMessages` and `waitTillMessage` support the same searchquery
+
+```typescript
+type MessageFilterIsType = 'read' | 'unread' | 'snoozed' | 'starred' | 'important';
+interface SearchQuery {
+  /**
+   * Search for one or multiple potential subjects
+   */
+  subject?: string | string[];
+  message?: string;
+  mustContainText?: string | string[];
+  from?: string | string[];
+  to?: string | string[];
+  cc?: string;
+  bcc?: string;
+  /**
+   * In which label the message should be
+   */
+  labels?: string[];
+  has?: 'attachment' | 'drive' | 'document' | 'spreadsheet' | 'youtube' | 'presentation';
+  /**
+   * Some possible extensions to search with, if not use "filename" property with your extension. e.g. filename: "png"
+   * Note: The filenames containing the extension will also be returned. E.g. 'filenameExtension:"pdf" will also return 'not-a-pdf.jpg' 
+   */
+  filenameExtension?: 'pdf' | 'ppt' | 'doc' | 'docx' | 'zip' | 'rar';
+  /**
+   * you can search like filename: "pdf" or filename:"salary.pdf"
+   */
+  filename?: string;
+  /**
+   * What status the message is in
+   */
+  is?: MessageFilterIsType | MessageFilterIsType[];
+
+  olderThan?: {
+    /**
+     * Must be higher than 0
+     */
+    amount: number;
+    period: "day" | "month" | "year"
+  },
+  newerThan?: {
+    /**
+     * Must be higher than 0
+     */
+    amount: number;
+    period: "day" | "month" | "year"
+  }
+  category: "primary" | "social" | "promotions" | "updates" | "forums" | "reservations" | "purchases",
+}
+
+```
+
+# Development
 
 Want to contribute? Great!
 
