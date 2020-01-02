@@ -33,7 +33,7 @@ export class Inbox implements InboxMethods {
   private gmailApi: gmail_v1.Gmail = google.gmail('v1');
   private authenticated: boolean = false;
 
-  constructor(private credentialsJsonPath: string, private tokenPath = 'gmail-token.json') { }
+  constructor(private credentialsJsonPath: string, private tokenPath = 'gmail-token.json') {}
 
   public async authenticateAccount(): Promise<void> {
     const oAuthClient = await authorizeAccount(this.credentialsJsonPath, this.tokenPath);
@@ -140,7 +140,7 @@ export class Inbox implements InboxMethods {
   }
 
   /**
-   * 
+   *
    * @param searchQuery similar to findMessages, the query how it will find the message
    * @param timeTillNextCallInSeconds How long it should wait till it checks again if the message is received
    * @param maxWaitTimeInSeconds How long it should wait in total for the message
@@ -149,7 +149,7 @@ export class Inbox implements InboxMethods {
     searchQuery: SearchQuery | string | undefined,
     shouldLogEvents = true,
     timeTillNextCallInSeconds: number = 5,
-    maxWaitTimeInSeconds: number = 60
+    maxWaitTimeInSeconds: number = 60,
   ): Promise<Message[]> {
     return new Promise(async (resolve, reject) => {
       const waitTime = new Date();
@@ -281,7 +281,7 @@ export class Inbox implements InboxMethods {
     if (searchQuery.category) {
       searchString += `category:${searchQuery.category} `;
     }
-    
+
     return searchString;
   }
 }

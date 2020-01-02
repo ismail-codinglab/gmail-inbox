@@ -25,7 +25,7 @@ export interface SearchQuery {
   has?: 'attachment' | 'drive' | 'document' | 'spreadsheet' | 'youtube' | 'presentation';
   /**
    * Some possible extensions to search with, if not use "filename" property with your extension. e.g. filename: "png"
-   * Note: The filenames containing the extension will also be returned. E.g. 'filenameExtension:"pdf" will also return 'not-a-pdf.jpg' 
+   * Note: The filenames containing the extension will also be returned. E.g. 'filenameExtension:"pdf" will also return 'not-a-pdf.jpg'
    */
   filenameExtension?: 'pdf' | 'ppt' | 'doc' | 'docx' | 'zip' | 'rar';
   /**
@@ -54,16 +54,16 @@ export interface SearchQuery {
      * Must be higher than 0
      */
     amount: number;
-    period: "day" | "month" | "year"
-  },
+    period: 'day' | 'month' | 'year';
+  };
   newerThan?: {
     /**
      * Must be higher than 0
      */
     amount: number;
-    period: "day" | "month" | "year"
-  }
-  category: "primary" | "social" | "promotions" | "updates" | "forums" | "reservations" | "purchases",
+    period: 'day' | 'month' | 'year';
+  };
+  category: 'primary' | 'social' | 'promotions' | 'updates' | 'forums' | 'reservations' | 'purchases';
   // sizeInBytes?: number,
   // largerThanInBytes?: number,
   // smallerThanInBytes?: number,
