@@ -26,7 +26,7 @@ async function exeCuteMe(){
   let inbox = new Inbox('credentials.json');
   await inbox.authenticateAccount(); // logs user in
   
-  let messages = await inbox.getInboxMessages();
+  let messages = await inbox.getLatestMessages();
 
   console.log("my inbox messages", JSON.stringify(messages,null,4));
   
@@ -73,12 +73,30 @@ Done! You're good to go, you should be able to see your inbox messages, enjoy co
 
 ```Typescript
 interface InboxMethods {
+  /**
+   * Logs the user in. 
+   * If there is no authenticated user then a instruction will pop-up and an input is required
+   */
   authenticateAccount(): Promise<void>;
-  findMessages(searchQuery: SearchQuery);
+  /**
+   * Finds messages based on the searchQuery
+   * Can be typed or plain text as you can be used to in the gmail search-bar
+   */
+  findMessages(searchQuery: SearchQuery| string);
+  /**
+   * Gets all the labels. Default ones and custom ones.
+   */
   getAllLabels(): Promise<Label[]>;
-  getInboxMessages(): Promise<Message[]>;
+  /**
+   * Gets the latest messages
+   */
+  getLatestMessages(): Promise<Message[]>;
+  /**
+   * Waits until a message is received. 
+   * Handy for testing if the 'welcome' or 'verify email' email is being send within a time limit e.g. 60seconds
+   */
   waitTillMessage(
-    searchQuery: SearchQuery,
+    searchQuery: SearchQuery | string,
     shouldLogEvents: boolean,
     timeTillNextCallInSeconds: number,
     maxWaitTimeInSeconds: number
