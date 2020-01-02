@@ -5,11 +5,16 @@ import { formatMessage } from './formatMessage';
 import { authorizeAccount } from './GoogleAuthorizer';
 import { Label } from './Label.interface';
 import { SearchQuery } from './SearchQuery.interface';
+import { InboxMethods } from './InboxMethods.interface';
 sourceMapSupport.install();
 
 export interface Message {
   messageId: string;
   threadId: string;
+  subject: string | undefined;
+  from: string | undefined;
+  to: string | undefined;
+  receivedOn: string | undefined;
   labelIds: string[];
   snippet: string;
   historyId: string;
@@ -17,20 +22,20 @@ export interface Message {
    * unix ms timestamp string
    */
   internalDate: string;
-  headers: any[];
+  getFullMessage: () => any;
   body: {
     html: string | undefined;
     text: string | undefined;
   };
 }
 
-export class Inbox {
+export class Inbox implements InboxMethods {
   private gmailApi: gmail_v1.Gmail = google.gmail('v1');
   private authenticated: boolean = false;
 
   constructor(private credentialsJsonPath: string, private tokenPath = 'gmail-token.json') { }
 
-  public async authenticateAccount() {
+  public async authenticateAccount(): Promise<void> {
     const oAuthClient = await authorizeAccount(this.credentialsJsonPath, this.tokenPath);
     this.gmailApi = google.gmail({ version: 'v1', auth: oAuthClient });
     this.authenticated = true;
@@ -58,7 +63,7 @@ export class Inbox {
   /**
    * Retrieves all existing emails
    */
-  public async getInboxMessages(): Promise<Message[]> {
+  public async getLatestMessages(): Promise<Message[]> {
     this.guardAuthentication();
     try {
       const messages = await this.findMessages({
@@ -140,24 +145,39 @@ export class Inbox {
    * @param timeTillNextCallInSeconds How long it should wait till it checks again if the message is received
    * @param maxWaitTimeInSeconds How long it should wait in total for the message
    */
-  public waitTillMessage(searchQuery: SearchQuery | string | undefined, timeTillNextCallInSeconds: number, maxWaitTimeInSeconds: number) {
+  public waitTillMessage(
+    searchQuery: SearchQuery | string | undefined,
+    shouldLogEvents = true,
+    timeTillNextCallInSeconds: number = 5,
+    maxWaitTimeInSeconds: number = 60
+  ): Promise<Message[]> {
     return new Promise(async (resolve, reject) => {
       let waitTime = new Date();
       let timeDiffInSeconds = 0;
+      this.log(shouldLogEvents, 'finding message based on SearchQuery:', searchQuery);
       let messages = await this.findMessages(searchQuery);
 
-      while(!messages.length) {
+      while (!messages.length) {
         timeDiffInSeconds = (Date.now() - waitTime.getTime()) / 1000;
-        if(timeDiffInSeconds && maxWaitTimeInSeconds - timeDiffInSeconds <= 0){
+        if (timeDiffInSeconds && maxWaitTimeInSeconds - timeDiffInSeconds <= 0) {
+          this.log(shouldLogEvents, 'Could not find message within time limit of searchQuery:', searchQuery);
           reject(`No message found for searchQuery: ${searchQuery}`);
           return;
         }
         await this.timeout(timeTillNextCallInSeconds * 1000);
+        this.log(shouldLogEvents, `${timeDiffInSeconds} seconds passed, trying again with SearchQuery:`, searchQuery);
         messages = await this.findMessages(searchQuery);
       }
-      
+
       resolve(messages);
     });
+  }
+
+  private log(shouldLog: boolean, ...messages: any) {
+    if (shouldLog) {
+      messages.unshift('Gmail-inbox:');
+      console.log.apply(console, messages);
+    }
   }
 
   private timeout(ms: number): Promise<any> {
@@ -205,49 +225,63 @@ export class Inbox {
     }
 
     if (searchQuery.subject) {
-      searchString += `subject: ${this.arrayToAdvancedSearchString(searchQuery.subject)}`;
+      searchString += `subject: ${this.arrayToAdvancedSearchString(searchQuery.subject)} `;
     }
 
     if (searchQuery.mustContainText) {
-      searchString += ` "${searchQuery.mustContainText}"`;
+      searchString += `"${searchQuery.mustContainText}" `;
     }
 
     if (searchQuery.from) {
-      searchString += ` from: ${this.arrayToAdvancedSearchString(searchQuery.from)}`;
+      searchString += `from: ${this.arrayToAdvancedSearchString(searchQuery.from)} `;
     }
 
     if (searchQuery.to) {
-      searchString += ` to: ${this.arrayToAdvancedSearchString(searchQuery.to)}`;
+      searchString += `to: ${this.arrayToAdvancedSearchString(searchQuery.to)} `;
     }
 
     if (searchQuery.cc) {
-      searchString += ` cc: ${searchQuery.cc}`;
+      searchString += `cc: ${searchQuery.cc} `;
     }
 
     if (searchQuery.bcc) {
-      searchString += ` bcc: ${searchQuery.bcc}`;
+      searchString += `bcc: ${searchQuery.bcc} `;
     }
 
     if (searchQuery.labels) {
-      searchString += ` label: ${this.arrayToAdvancedSearchString(searchQuery.labels)}`;
+      searchString += `label: ${this.arrayToAdvancedSearchString(searchQuery.labels)} `;
     }
 
     if (searchQuery.has) {
-      searchString += ` has: ${searchQuery.has}`;
+      searchString += `has:${searchQuery.has} `;
     }
 
     if (searchQuery.filenameExtension) {
-      searchString += ` filename: ${searchQuery.filenameExtension}`;
+      searchString += `filename:${searchQuery.filenameExtension} `;
     }
 
     if (searchQuery.filename) {
-      searchString += ` filename: ${searchQuery.filename}`;
+      searchString += `filename:${searchQuery.filename} `;
     }
 
     if (searchQuery.is) {
-      searchString += ` is: ${searchQuery.is}`;
+      searchString += `is: ${searchQuery.is} `;
     }
 
+    if (searchQuery.olderThan && searchQuery.olderThan.amount > 0) {
+      let range = searchQuery.olderThan;
+      searchString += `older_than:${range.amount}${range.period.substr(0, 1)} `;
+    }
+
+    if (searchQuery.newerThan && searchQuery.newerThan.amount > 0) {
+      let range = searchQuery.newerThan;
+      searchString += `newer_than:${range.amount}${range.period.substr(0, 1)} `;
+    }
+
+    if (searchQuery.category) {
+      searchString += `category:${searchQuery.category} `;
+    }
+    
     return searchString;
   }
 }

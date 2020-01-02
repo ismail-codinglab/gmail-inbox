@@ -7,11 +7,20 @@ import { SearchQuery } from '../SearchQuery.interface';
 
   await inbox.authenticateAccount();
   console.log('My labels', await inbox.getAllLabels());
-  console.log('My inbox', await inbox.getInboxMessages());
+  console.log('My inbox', await inbox.getLatestMessages());
+  console.log("send yourself a mail with the subject 'test' and the content 'test' :)");
   console.log(
-    "My mails with pdf's",
-    await inbox.findMessages({
-      filenameExtension: 'pdf',
-    } as SearchQuery),
+    "My test mail",
+    await inbox.waitTillMessage({
+      newerThan:{ // only of today
+        amount: 1,
+        period: "day"
+      },
+      subject: "welcome", // subject must contain string test
+      mustContainText: "verify", // either subject or message must contain string test
+      has: "attachment", // must have an attachment
+      filenameExtension: "pdf" // note: the filenames containing pdf e.g. 'not-a-pdf.png' will also be returned
+      
+    } as SearchQuery)
   );
 })();

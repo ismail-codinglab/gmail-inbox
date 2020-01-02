@@ -1,22 +1,38 @@
 import { gmail_v1 } from 'googleapis';
 import { Message } from './Inbox';
 
-export const formatMessage = (message: { config: any; data: gmail_v1.Schema$Message; headers: any }) => {
-  const prettyMessage = {
+/**
+ * Method is being called by Inbox class
+ * 
+ * @param message 
+ */
+export const formatMessage = (message: { data: gmail_v1.Schema$Message; }): Message => {
+  let headers = message.data.payload?.headers;
+  const prettyMessage: Message = {
     body: getMessageBody(message),
-    headers: message.data.payload,
-    historyId: message.data.historyId,
-    internalDate: message.data.internalDate,
-    labelIds: message.data.labelIds,
-    messageId: message.data.id,
-    snippet: message.data.snippet,
-    threadId: message.data.threadId,
+    historyId: message.data.historyId!,
+    internalDate: message.data.internalDate!,
+    labelIds: message.data.labelIds!,
+    messageId: message.data.id!,
+    snippet: message.data.snippet!,
+    threadId: message.data.threadId!,
+    from: getHeader("From", headers),
+    to: getHeader("To", headers),
+    subject: getHeader("Subject", headers),
+    receivedOn: getHeader("Date",headers),
+    getFullMessage: () => message.data.payload
   };
 
   return prettyMessage;
 };
 
-const getMessageBody = (message: { config: any; data: gmail_v1.Schema$Message; headers: any }) => {
+const getHeader = (name: string, headers: {name?: string | undefined, value?: string | undefined}[] | undefined) => {
+  if(!headers) return;
+  const header = headers.find(h => h.name === name)
+  return header && header.value;
+}
+
+const getMessageBody = (message: { data: gmail_v1.Schema$Message;}) => {
   let body: any = {};
   const messagePayload = message.data.payload;
   const messageBody = messagePayload?.body;
@@ -36,7 +52,7 @@ const getMessageBody = (message: { config: any; data: gmail_v1.Schema$Message; h
   return body;
 };
 
-const getPayloadParts = (message: { config: any; data: gmail_v1.Schema$Message; headers: any }) => {
+const getPayloadParts = (message: {data: gmail_v1.Schema$Message;}) => {
   const body: any = {};
   const parts = message.data.payload?.parts;
   const hasSubParts = parts?.find(part => part.mimeType?.startsWith('multipart/'));
