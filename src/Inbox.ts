@@ -5,7 +5,7 @@ import { formatMessage } from './formatMessage';
 import { authorizeAccount } from './GoogleAuthorizer';
 import { InboxMethods } from './InboxMethods.interface';
 import { Label } from './Label.interface';
-import { SearchQuery } from './SearchQuery.interface';
+import { SearchQuery, MessageDateType, UnixTimestamp } from './SearchQuery.interface';
 sourceMapSupport.install();
 
 export interface Message {
@@ -33,7 +33,7 @@ export class Inbox implements InboxMethods {
   private gmailApi: gmail_v1.Gmail = google.gmail('v1');
   private authenticated: boolean = false;
 
-  constructor(private credentialsJsonPath: string, private tokenPath = 'gmail-token.json') {}
+  constructor(private credentialsJsonPath: string, private tokenPath = 'gmail-token.json') { }
 
   public async authenticateAccount(): Promise<void> {
     const oAuthClient = await authorizeAccount(this.credentialsJsonPath, this.tokenPath);
@@ -282,6 +282,52 @@ export class Inbox implements InboxMethods {
       searchString += `category:${searchQuery.category} `;
     }
 
+    if (searchQuery.before) {
+      searchString += `before:${this.mapDateTypeToQuery(searchQuery.before)} `;
+    }
+
+    if (searchQuery.after) {
+      searchString += `after:${this.mapDateTypeToQuery(searchQuery.after)} `;
+    }
+
+    if (searchQuery.newer) {
+      searchString += `newer:${this.mapDateTypeToQuery(searchQuery.newer)} `;
+    }
+
+    if (searchQuery.older) {
+      searchString += `older:${this.mapDateTypeToQuery(searchQuery.older)} `;
+    }
+
     return searchString;
+  }
+
+  private mapDateTypeToQuery(dateType: MessageDateType | UnixTimestamp): number | string {
+    if (typeof dateType === "number") {
+      return dateType;
+    }
+
+    let date = dateType.date;
+
+    switch (dateType.precision) {
+      case "milliseconds":
+        return date.getTime();
+
+      case "day":
+        return this.formatDate(date);
+
+      case "year":
+        return date.getFullYear();
+    }
+  }
+
+  private formatDate(date: Date) {
+    let month = '' + (date.getMonth() + 1);
+    let day = '' + date.getDate();
+    let year = date.getFullYear();
+
+    month.length < 2 && (month = '0' + month);
+    day.length < 2 && (day = '0' + day);
+
+    return [year, month, day].join('/');
   }
 }

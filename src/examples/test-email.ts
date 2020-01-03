@@ -20,6 +20,10 @@ import { SearchQuery } from '../SearchQuery.interface';
         amount: 1,
         period: 'day',
       },
+      before: {
+        date: new Date(2019),
+        precision: "year"
+      },
       subject: 'welcome', // subject must contain string test
     } as SearchQuery),
   );

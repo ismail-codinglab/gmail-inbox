@@ -1,12 +1,12 @@
-type MessageFilterIsType = 'read' | 'unread' | 'snoozed' | 'starred' | 'important';
-interface MessageFilterRangeType {
-  year: number;
-  month: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
-  /**
-   * starting from '1'
-   */
-  day: number;
+export type MessageIsType = 'read' | 'unread' | 'snoozed' | 'starred' | 'important';
+
+export interface MessageDateType {
+  date: Date;
+  precision: "year" | "day" | "milliseconds";
 }
+
+export type UnixTimestamp = number;
+
 export interface SearchQuery {
   /**
    * Search for one or multiple potential subjects
@@ -35,19 +35,25 @@ export interface SearchQuery {
   /**
    * What status the message is in
    */
-  is?: MessageFilterIsType | MessageFilterIsType[];
+  is?: MessageIsType | MessageIsType[];
 
-  // after?: MessageFilterRangeType,
-  // before?: MessageFilterRangeType,
+  /**
+   * same as 'newer'
+   */
+  after?: MessageDateType | UnixTimestamp,
+  /**
+   * same as 'older'
+   */
+  before?: MessageDateType | UnixTimestamp,
 
-  // /**
-  //  * same as 'before'
-  //  */
-  // older?: MessageFilterRangeType,
-  // /**
-  //  * same as 'after'
-  //  */
-  // newer?: MessageFilterRangeType,
+  /**
+   * same as 'before'
+   */
+  older?: MessageDateType | UnixTimestamp,
+  /**
+   * same as 'after'
+   */
+  newer?: MessageDateType | UnixTimestamp,
 
   olderThan?: {
     /**
