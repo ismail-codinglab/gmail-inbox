@@ -5,7 +5,7 @@ export interface MessageDateType {
   precision: "year" | "day" | "milliseconds";
 }
 
-export type UnixTimestamp = number;
+export type UnixTimestamp = number; // this alias for number gives you a better autocomplete suggestion
 
 export interface SearchQuery {
   /**
