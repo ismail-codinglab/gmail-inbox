@@ -309,6 +309,8 @@ export class Inbox implements InboxMethods {
     const date = dateType.date;
 
     switch (dateType.precision) {
+      case undefined:
+      case null:
       case 'milliseconds':
         return date.getTime();
 

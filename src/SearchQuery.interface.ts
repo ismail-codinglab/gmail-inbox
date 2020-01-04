@@ -2,7 +2,7 @@ export type MessageIsType = 'read' | 'unread' | 'snoozed' | 'starred' | 'importa
 
 export interface MessageDateType {
   date: Date;
-  precision: 'year' | 'day' | 'milliseconds';
+  precision?: 'year' | 'day' | 'milliseconds';
 }
 
 export type UnixTimestamp = number; // this alias for number gives you a better autocomplete suggestion
