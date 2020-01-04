@@ -5,7 +5,7 @@ import { formatMessage } from './formatMessage';
 import { authorizeAccount } from './GoogleAuthorizer';
 import { InboxMethods } from './InboxMethods.interface';
 import { Label } from './Label.interface';
-import { SearchQuery, MessageDateType, UnixTimestamp } from './SearchQuery.interface';
+import { MessageDateType, SearchQuery, UnixTimestamp } from './SearchQuery.interface';
 sourceMapSupport.install();
 
 export interface Message {
@@ -306,7 +306,7 @@ export class Inbox implements InboxMethods {
       return dateType;
     }
 
-    let date = dateType.date;
+    const date = dateType.date;
 
     switch (dateType.precision) {
       case "milliseconds":
@@ -323,10 +323,10 @@ export class Inbox implements InboxMethods {
   private formatDate(date: Date) {
     let month = '' + (date.getMonth() + 1);
     let day = '' + date.getDate();
-    let year = date.getFullYear();
+    const year = date.getFullYear();
 
-    month.length < 2 && (month = '0' + month);
-    day.length < 2 && (day = '0' + day);
+    if(month.length < 2) { month = '0' + month; }
+    if(day.length < 2) { day = '0' + day; }
 
     return [year, month, day].join('/');
   }
