@@ -2,7 +2,7 @@ export type MessageIsType = 'read' | 'unread' | 'snoozed' | 'starred' | 'importa
 
 export interface MessageDateType {
   date: Date;
-  precision: "year" | "day" | "milliseconds";
+  precision: 'year' | 'day' | 'milliseconds';
 }
 
 export type UnixTimestamp = number; // this alias for number gives you a better autocomplete suggestion
@@ -40,20 +40,20 @@ export interface SearchQuery {
   /**
    * same as 'newer'
    */
-  after?: MessageDateType | UnixTimestamp,
+  after?: MessageDateType | UnixTimestamp;
   /**
    * same as 'older'
    */
-  before?: MessageDateType | UnixTimestamp,
+  before?: MessageDateType | UnixTimestamp;
 
   /**
    * same as 'before'
    */
-  older?: MessageDateType | UnixTimestamp,
+  older?: MessageDateType | UnixTimestamp;
   /**
    * same as 'after'
    */
-  newer?: MessageDateType | UnixTimestamp,
+  newer?: MessageDateType | UnixTimestamp;
 
   olderThan?: {
     /**

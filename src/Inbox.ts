@@ -33,7 +33,7 @@ export class Inbox implements InboxMethods {
   private gmailApi: gmail_v1.Gmail = google.gmail('v1');
   private authenticated: boolean = false;
 
-  constructor(private credentialsJsonPath: string, private tokenPath = 'gmail-token.json') { }
+  constructor(private credentialsJsonPath: string, private tokenPath = 'gmail-token.json') {}
 
   public async authenticateAccount(): Promise<void> {
     const oAuthClient = await authorizeAccount(this.credentialsJsonPath, this.tokenPath);
@@ -302,20 +302,20 @@ export class Inbox implements InboxMethods {
   }
 
   private mapDateTypeToQuery(dateType: MessageDateType | UnixTimestamp): number | string {
-    if (typeof dateType === "number") {
+    if (typeof dateType === 'number') {
       return dateType;
     }
 
     const date = dateType.date;
 
     switch (dateType.precision) {
-      case "milliseconds":
+      case 'milliseconds':
         return date.getTime();
 
-      case "day":
+      case 'day':
         return this.formatDate(date);
 
-      case "year":
+      case 'year':
         return date.getFullYear();
     }
   }
@@ -325,8 +325,12 @@ export class Inbox implements InboxMethods {
     let day = '' + date.getDate();
     const year = date.getFullYear();
 
-    if(month.length < 2) { month = '0' + month; }
-    if(day.length < 2) { day = '0' + day; }
+    if (month.length < 2) {
+      month = '0' + month;
+    }
+    if (day.length < 2) {
+      day = '0' + day;
+    }
 
     return [year, month, day].join('/');
   }
