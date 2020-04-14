@@ -161,7 +161,7 @@ export class Inbox implements InboxMethods {
         timeDiffInSeconds = (Date.now() - waitTime.getTime()) / 1000;
         if (timeDiffInSeconds && maxWaitTimeInSeconds - timeDiffInSeconds <= 0) {
           this.log(shouldLogEvents, 'Could not find message within time limit of searchQuery:', searchQuery);
-          reject(`No message found for searchQuery: ${searchQuery}`);
+          reject(`No message found for searchQuery: ${JSON.stringify(searchQuery)}`);
           return;
         }
         await this.timeout(timeTillNextCallInSeconds * 1000);
