@@ -19,9 +19,11 @@
     "lib/**/*"
   ],
   "keywords": [
-    "Gmail",
-    "Inbox",
-    "Receive mail"
+    "gmail",
+    "gmail api",
+    "gmailjs",
+    "gmail inbox",
+    "gmail Receive mail"
   ],
   "author": "CodingLab",
   "license": "ISC",
