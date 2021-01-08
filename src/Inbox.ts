@@ -312,7 +312,7 @@ export class Inbox implements InboxMethods {
       case undefined:
       case null:
       case 'milliseconds':
-        return date.getTime();
+        return date.getTime() / 1000;
 
       case 'day':
         return this.formatDate(date);
