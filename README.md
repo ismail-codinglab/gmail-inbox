@@ -182,7 +182,7 @@ export interface SearchQuery {
     period: 'day' | 'month' | 'year';
   };
   
-  maxResults?: number 
+  maxResults?: number;
 
   category: 'primary' | 'social' | 'promotions' | 'updates' | 'forums' | 'reservations' | 'purchases';
 }
