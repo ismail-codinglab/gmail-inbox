@@ -69,8 +69,12 @@ export interface SearchQuery {
     amount: number;
     period: 'day' | 'month' | 'year';
   };
+
+  maxResults?: number;
+  
   category: 'primary' | 'social' | 'promotions' | 'updates' | 'forums' | 'reservations' | 'purchases';
   // sizeInBytes?: number,
   // largerThanInBytes?: number,
   // smallerThanInBytes?: number,
+  
 }
