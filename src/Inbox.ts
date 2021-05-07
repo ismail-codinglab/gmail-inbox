@@ -107,13 +107,13 @@ export class Inbox implements InboxMethods {
       const query: any = {
         userId: 'me',
       };
-      
+
       if (searchString) {
         query.q = searchString;
       }
 
-      if(typeof searchQuery=='object' && searchQuery.maxResults){
-        query.maxResults=searchQuery.maxResults;
+      if (typeof searchQuery === 'object' && searchQuery.maxResults) {
+        query.maxResults = searchQuery.maxResults;
       }
 
       this.gmailApi.users.messages.list(query, async (errorMessage, result) => {
